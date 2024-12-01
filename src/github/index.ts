@@ -784,7 +784,8 @@ async function generateAnalytics(
 
 async function runTests(
   owner: string,
-  repo: string
+  repo: string,
+  branch: string = 'main'
 ): Promise<void> {
   const response = await fetch(
     `https://api.github.com/repos/${owner}/${repo}/actions/workflows/run-tests.yml/dispatches`,
@@ -796,7 +797,7 @@ async function runTests(
         "User-Agent": "github-mcp-server",
         "Content-Type": "application/json"
       },
-      body: JSON.stringify({ ref: "main" })
+      body: JSON.stringify({ ref: branch })
     }
   );
 
@@ -807,7 +808,8 @@ async function runTests(
 
 async function scanSecurity(
   owner: string,
-  repo: string
+  repo: string,
+  branch: string = 'main'
 ): Promise<void> {
   const response = await fetch(
     `https://api.github.com/repos/${owner}/${repo}/actions/workflows/scan-security.yml/dispatches`,
@@ -819,7 +821,7 @@ async function scanSecurity(
         "User-Agent": "github-mcp-server",
         "Content-Type": "application/json"
       },
-      body: JSON.stringify({ ref: "main" })
+      body: JSON.stringify({ ref: branch })
     }
   );
 
@@ -1128,13 +1130,13 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
       case "run_tests": {
         const args = RunTestsSchema.parse(request.params.arguments);
-        await runTests(args.owner, args.repo);
+        await runTests(args.owner, args.repo, args.branch);
         return { toolResult: { success: true } };
       }
 
       case "scan_security": {
         const args = ScanSecuritySchema.parse(request.params.arguments);
-        await scanSecurity(args.owner, args.repo);
+        await scanSecurity(args.owner, args.repo, args.branch);
         return { toolResult: { success: true } };
       }
 
