@@ -41,7 +41,19 @@ import {
   CreateIssueSchema,
   CreatePullRequestSchema,
   ForkRepositorySchema,
-  CreateBranchSchema
+  CreateBranchSchema,
+  AssignIssueSchema,
+  SetIssuePrioritySchema,
+  AddIssueLabelSchema,
+  ReviewPullRequestSchema,
+  MergePullRequestSchema,
+  CreateWorkflowSchema,
+  ScanVulnerabilitiesSchema,
+  ApplyPatchSchema,
+  LiveCodeEditSchema,
+  IntegratedChatSchema,
+  CustomNotificationSchema,
+  GenerateAnalyticsSchema
 } from './schemas.js';
 import { z } from 'zod';
 import { zodToJsonSchema } from 'zod-to-json-schema';
@@ -467,6 +479,307 @@ async function createRepository(
   return GitHubRepositorySchema.parse(await response.json());
 }
 
+async function assignIssue(
+  owner: string,
+  repo: string,
+  issue_number: number,
+  assignees: string[]
+): Promise<GitHubIssue> {
+  const response = await fetch(
+    `https://api.github.com/repos/${owner}/${repo}/issues/${issue_number}/assignees`,
+    {
+      method: "POST",
+      headers: {
+        "Authorization": `token ${GITHUB_PERSONAL_ACCESS_TOKEN}`,
+        "Accept": "application/vnd.github.v3+json",
+        "User-Agent": "github-mcp-server",
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ assignees })
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error(`GitHub API error: ${response.statusText}`);
+  }
+
+  return GitHubIssueSchema.parse(await response.json());
+}
+
+async function setIssuePriority(
+  owner: string,
+  repo: string,
+  issue_number: number,
+  priority: string
+): Promise<GitHubIssue> {
+  const response = await fetch(
+    `https://api.github.com/repos/${owner}/${repo}/issues/${issue_number}`,
+    {
+      method: "PATCH",
+      headers: {
+        "Authorization": `token ${GITHUB_PERSONAL_ACCESS_TOKEN}`,
+        "Accept": "application/vnd.github.v3+json",
+        "User-Agent": "github-mcp-server",
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ labels: [priority] })
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error(`GitHub API error: ${response.statusText}`);
+  }
+
+  return GitHubIssueSchema.parse(await response.json());
+}
+
+async function addIssueLabel(
+  owner: string,
+  repo: string,
+  issue_number: number,
+  label: string
+): Promise<GitHubIssue> {
+  const response = await fetch(
+    `https://api.github.com/repos/${owner}/${repo}/issues/${issue_number}/labels`,
+    {
+      method: "POST",
+      headers: {
+        "Authorization": `token ${GITHUB_PERSONAL_ACCESS_TOKEN}`,
+        "Accept": "application/vnd.github.v3+json",
+        "User-Agent": "github-mcp-server",
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ labels: [label] })
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error(`GitHub API error: ${response.statusText}`);
+  }
+
+  return GitHubIssueSchema.parse(await response.json());
+}
+
+async function reviewPullRequest(
+  owner: string,
+  repo: string,
+  pull_number: number,
+  event: string,
+  body?: string
+): Promise<GitHubPullRequest> {
+  const response = await fetch(
+    `https://api.github.com/repos/${owner}/${repo}/pulls/${pull_number}/reviews`,
+    {
+      method: "POST",
+      headers: {
+        "Authorization": `token ${GITHUB_PERSONAL_ACCESS_TOKEN}`,
+        "Accept": "application/vnd.github.v3+json",
+        "User-Agent": "github-mcp-server",
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ event, body })
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error(`GitHub API error: ${response.statusText}`);
+  }
+
+  return GitHubPullRequestSchema.parse(await response.json());
+}
+
+async function mergePullRequest(
+  owner: string,
+  repo: string,
+  pull_number: number,
+  commit_title?: string,
+  commit_message?: string
+): Promise<GitHubPullRequest> {
+  const response = await fetch(
+    `https://api.github.com/repos/${owner}/${repo}/pulls/${pull_number}/merge`,
+    {
+      method: "PUT",
+      headers: {
+        "Authorization": `token ${GITHUB_PERSONAL_ACCESS_TOKEN}`,
+        "Accept": "application/vnd.github.v3+json",
+        "User-Agent": "github-mcp-server",
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ commit_title, commit_message })
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error(`GitHub API error: ${response.statusText}`);
+  }
+
+  return GitHubPullRequestSchema.parse(await response.json());
+}
+
+async function createWorkflow(
+  owner: string,
+  repo: string,
+  workflow: string
+): Promise<void> {
+  const response = await fetch(
+    `https://api.github.com/repos/${owner}/${repo}/actions/workflows`,
+    {
+      method: "POST",
+      headers: {
+        "Authorization": `token ${GITHUB_PERSONAL_ACCESS_TOKEN}`,
+        "Accept": "application/vnd.github.v3+json",
+        "User-Agent": "github-mcp-server",
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ workflow })
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error(`GitHub API error: ${response.statusText}`);
+  }
+}
+
+async function scanVulnerabilities(
+  owner: string,
+  repo: string
+): Promise<void> {
+  const response = await fetch(
+    `https://api.github.com/repos/${owner}/${repo}/vulnerability-alerts`,
+    {
+      method: "GET",
+      headers: {
+        "Authorization": `token ${GITHUB_PERSONAL_ACCESS_TOKEN}`,
+        "Accept": "application/vnd.github.v3+json",
+        "User-Agent": "github-mcp-server"
+      }
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error(`GitHub API error: ${response.statusText}`);
+  }
+}
+
+async function applyPatch(
+  owner: string,
+  repo: string,
+  patch: string
+): Promise<void> {
+  const response = await fetch(
+    `https://api.github.com/repos/${owner}/${repo}/pulls`,
+    {
+      method: "POST",
+      headers: {
+        "Authorization": `token ${GITHUB_PERSONAL_ACCESS_TOKEN}`,
+        "Accept": "application/vnd.github.v3+json",
+        "User-Agent": "github-mcp-server",
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ patch })
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error(`GitHub API error: ${response.statusText}`);
+  }
+}
+
+async function liveCodeEdit(
+  owner: string,
+  repo: string,
+  path: string,
+  content: string
+): Promise<void> {
+  const response = await fetch(
+    `https://api.github.com/repos/${owner}/${repo}/contents/${path}`,
+    {
+      method: "PUT",
+      headers: {
+        "Authorization": `token ${GITHUB_PERSONAL_ACCESS_TOKEN}`,
+        "Accept": "application/vnd.github.v3+json",
+        "User-Agent": "github-mcp-server",
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ content })
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error(`GitHub API error: ${response.statusText}`);
+  }
+}
+
+async function integratedChat(
+  owner: string,
+  repo: string,
+  message: string
+): Promise<void> {
+  const response = await fetch(
+    `https://api.github.com/repos/${owner}/${repo}/issues/comments`,
+    {
+      method: "POST",
+      headers: {
+        "Authorization": `token ${GITHUB_PERSONAL_ACCESS_TOKEN}`,
+        "Accept": "application/vnd.github.v3+json",
+        "User-Agent": "github-mcp-server",
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ body: message })
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error(`GitHub API error: ${response.statusText}`);
+  }
+}
+
+async function customNotification(
+  owner: string,
+  repo: string,
+  event: string,
+  message: string
+): Promise<void> {
+  const response = await fetch(
+    `https://api.github.com/repos/${owner}/${repo}/dispatches`,
+    {
+      method: "POST",
+      headers: {
+        "Authorization": `token ${GITHUB_PERSONAL_ACCESS_TOKEN}`,
+        "Accept": "application/vnd.github.v3+json",
+        "User-Agent": "github-mcp-server",
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ event_type: event, client_payload: { message } })
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error(`GitHub API error: ${response.statusText}`);
+  }
+}
+
+async function generateAnalytics(
+  owner: string,
+  repo: string
+): Promise<void> {
+  const response = await fetch(
+    `https://api.github.com/repos/${owner}/${repo}/traffic/views`,
+    {
+      method: "GET",
+      headers: {
+        "Authorization": `token ${GITHUB_PERSONAL_ACCESS_TOKEN}`,
+        "Accept": "application/vnd.github.v3+json",
+        "User-Agent": "github-mcp-server"
+      }
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error(`GitHub API error: ${response.statusText}`);
+  }
+}
+
 server.setRequestHandler(ListToolsRequestSchema, async () => {
   return {
     tools: [
@@ -514,6 +827,66 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
         name: "create_branch",
         description: "Create a new branch in a GitHub repository",
         inputSchema: zodToJsonSchema(CreateBranchSchema)
+      },
+      {
+        name: "assign_issue",
+        description: "Assign an issue to one or more users",
+        inputSchema: zodToJsonSchema(AssignIssueSchema)
+      },
+      {
+        name: "set_issue_priority",
+        description: "Set the priority of an issue",
+        inputSchema: zodToJsonSchema(SetIssuePrioritySchema)
+      },
+      {
+        name: "add_issue_label",
+        description: "Add a label to an issue",
+        inputSchema: zodToJsonSchema(AddIssueLabelSchema)
+      },
+      {
+        name: "review_pull_request",
+        description: "Review a pull request",
+        inputSchema: zodToJsonSchema(ReviewPullRequestSchema)
+      },
+      {
+        name: "merge_pull_request",
+        description: "Merge a pull request",
+        inputSchema: zodToJsonSchema(MergePullRequestSchema)
+      },
+      {
+        name: "create_workflow",
+        description: "Create a new GitHub Actions workflow",
+        inputSchema: zodToJsonSchema(CreateWorkflowSchema)
+      },
+      {
+        name: "scan_vulnerabilities",
+        description: "Scan for security vulnerabilities",
+        inputSchema: zodToJsonSchema(ScanVulnerabilitiesSchema)
+      },
+      {
+        name: "apply_patch",
+        description: "Apply a patch to the repository",
+        inputSchema: zodToJsonSchema(ApplyPatchSchema)
+      },
+      {
+        name: "live_code_edit",
+        description: "Edit code in real-time",
+        inputSchema: zodToJsonSchema(LiveCodeEditSchema)
+      },
+      {
+        name: "integrated_chat",
+        description: "Send a message to the integrated chat",
+        inputSchema: zodToJsonSchema(IntegratedChatSchema)
+      },
+      {
+        name: "custom_notification",
+        description: "Send a custom notification",
+        inputSchema: zodToJsonSchema(CustomNotificationSchema)
+      },
+      {
+        name: "generate_analytics",
+        description: "Generate detailed analytics and reports",
+        inputSchema: zodToJsonSchema(GenerateAnalyticsSchema)
       }
     ]
   };
@@ -621,6 +994,78 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         const { owner, repo, ...options } = args;
         const pullRequest = await createPullRequest(owner, repo, options);
         return { toolResult: pullRequest };
+      }
+
+      case "assign_issue": {
+        const args = AssignIssueSchema.parse(request.params.arguments);
+        const result = await assignIssue(args.owner, args.repo, args.issue_number, args.assignees);
+        return { toolResult: result };
+      }
+
+      case "set_issue_priority": {
+        const args = SetIssuePrioritySchema.parse(request.params.arguments);
+        const result = await setIssuePriority(args.owner, args.repo, args.issue_number, args.priority);
+        return { toolResult: result };
+      }
+
+      case "add_issue_label": {
+        const args = AddIssueLabelSchema.parse(request.params.arguments);
+        const result = await addIssueLabel(args.owner, args.repo, args.issue_number, args.label);
+        return { toolResult: result };
+      }
+
+      case "review_pull_request": {
+        const args = ReviewPullRequestSchema.parse(request.params.arguments);
+        const result = await reviewPullRequest(args.owner, args.repo, args.pull_number, args.event, args.body);
+        return { toolResult: result };
+      }
+
+      case "merge_pull_request": {
+        const args = MergePullRequestSchema.parse(request.params.arguments);
+        const result = await mergePullRequest(args.owner, args.repo, args.pull_number, args.commit_title, args.commit_message);
+        return { toolResult: result };
+      }
+
+      case "create_workflow": {
+        const args = CreateWorkflowSchema.parse(request.params.arguments);
+        await createWorkflow(args.owner, args.repo, args.workflow);
+        return { toolResult: { success: true } };
+      }
+
+      case "scan_vulnerabilities": {
+        const args = ScanVulnerabilitiesSchema.parse(request.params.arguments);
+        await scanVulnerabilities(args.owner, args.repo);
+        return { toolResult: { success: true } };
+      }
+
+      case "apply_patch": {
+        const args = ApplyPatchSchema.parse(request.params.arguments);
+        await applyPatch(args.owner, args.repo, args.patch);
+        return { toolResult: { success: true } };
+      }
+
+      case "live_code_edit": {
+        const args = LiveCodeEditSchema.parse(request.params.arguments);
+        await liveCodeEdit(args.owner, args.repo, args.path, args.content);
+        return { toolResult: { success: true } };
+      }
+
+      case "integrated_chat": {
+        const args = IntegratedChatSchema.parse(request.params.arguments);
+        await integratedChat(args.owner, args.repo, args.message);
+        return { toolResult: { success: true } };
+      }
+
+      case "custom_notification": {
+        const args = CustomNotificationSchema.parse(request.params.arguments);
+        await customNotification(args.owner, args.repo, args.event, args.message);
+        return { toolResult: { success: true } };
+      }
+
+      case "generate_analytics": {
+        const args = GenerateAnalyticsSchema.parse(request.params.arguments);
+        await generateAnalytics(args.owner, args.repo);
+        return { toolResult: { success: true } };
       }
 
       default:
