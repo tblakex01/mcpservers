@@ -53,7 +53,9 @@ import {
   LiveCodeEditSchema,
   IntegratedChatSchema,
   CustomNotificationSchema,
-  GenerateAnalyticsSchema
+  GenerateAnalyticsSchema,
+  RunTestsSchema,
+  ScanSecuritySchema
 } from './schemas.js';
 import { z } from 'zod';
 import { zodToJsonSchema } from 'zod-to-json-schema';
@@ -780,6 +782,54 @@ async function generateAnalytics(
   }
 }
 
+async function runTests(
+  owner: string,
+  repo: string,
+  branch: string = 'main'
+): Promise<void> {
+  const response = await fetch(
+    `https://api.github.com/repos/${owner}/${repo}/actions/workflows/run-tests.yml/dispatches`,
+    {
+      method: "POST",
+      headers: {
+        "Authorization": `token ${GITHUB_PERSONAL_ACCESS_TOKEN}`,
+        "Accept": "application/vnd.github.v3+json",
+        "User-Agent": "github-mcp-server",
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ ref: branch })
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error(`GitHub API error: ${response.statusText}`);
+  }
+}
+
+async function scanSecurity(
+  owner: string,
+  repo: string,
+  branch: string = 'main'
+): Promise<void> {
+  const response = await fetch(
+    `https://api.github.com/repos/${owner}/${repo}/actions/workflows/scan-security.yml/dispatches`,
+    {
+      method: "POST",
+      headers: {
+        "Authorization": `token ${GITHUB_PERSONAL_ACCESS_TOKEN}`,
+        "Accept": "application/vnd.github.v3+json",
+        "User-Agent": "github-mcp-server",
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ ref: branch })
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error(`GitHub API error: ${response.statusText}`);
+  }
+}
+
 server.setRequestHandler(ListToolsRequestSchema, async () => {
   return {
     tools: [
@@ -887,6 +937,16 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
         name: "generate_analytics",
         description: "Generate detailed analytics and reports",
         inputSchema: zodToJsonSchema(GenerateAnalyticsSchema)
+      },
+      {
+        name: "run_tests",
+        description: "Run tests using GitHub Actions",
+        inputSchema: zodToJsonSchema(RunTestsSchema)
+      },
+      {
+        name: "scan_security",
+        description: "Scan the repository for security vulnerabilities",
+        inputSchema: zodToJsonSchema(ScanSecuritySchema)
       }
     ]
   };
@@ -1065,6 +1125,18 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       case "generate_analytics": {
         const args = GenerateAnalyticsSchema.parse(request.params.arguments);
         await generateAnalytics(args.owner, args.repo);
+        return { toolResult: { success: true } };
+      }
+
+      case "run_tests": {
+        const args = RunTestsSchema.parse(request.params.arguments);
+        await runTests(args.owner, args.repo, args.branch);
+        return { toolResult: { success: true } };
+      }
+
+      case "scan_security": {
+        const args = ScanSecuritySchema.parse(request.params.arguments);
+        await scanSecurity(args.owner, args.repo, args.branch);
         return { toolResult: { success: true } };
       }
 

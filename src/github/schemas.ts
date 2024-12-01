@@ -358,6 +358,14 @@ export const CreateBranchSchema = RepoParamsSchema.extend({
     .describe("Optional: source branch to create from (defaults to the repository's default branch)")
 });
 
+export const RunTestsSchema = RepoParamsSchema.extend({
+  branch: z.string().optional().describe("Branch to run tests on (default: 'main')")
+});
+
+export const ScanSecuritySchema = RepoParamsSchema.extend({
+  branch: z.string().optional().describe("Branch to scan for security vulnerabilities (default: 'main')")
+});
+
 // Export types
 export type GitHubAuthor = z.infer<typeof GitHubAuthorSchema>;
 export type GitHubFork = z.infer<typeof GitHubForkSchema>;
@@ -376,3 +384,5 @@ export type CreatePullRequestOptions = z.infer<typeof CreatePullRequestOptionsSc
 export type CreateBranchOptions = z.infer<typeof CreateBranchOptionsSchema>;
 export type GitHubCreateUpdateFileResponse = z.infer<typeof GitHubCreateUpdateFileResponseSchema>;
 export type GitHubSearchResponse = z.infer<typeof GitHubSearchResponseSchema>;
+export type RunTests = z.infer<typeof RunTestsSchema>;
+export type ScanSecurity = z.infer<typeof ScanSecuritySchema>;
