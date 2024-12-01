@@ -8,7 +8,14 @@ MCP Server for the GitHub API, enabling file operations, repository management, 
 - **Comprehensive Error Handling**: Clear error messages for common issues
 - **Git History Preservation**: Operations maintain proper Git history without force pushing
 - **Batch Operations**: Support for both single-file and multi-file operations
-
+- **Enhanced Repository Management**: Tools for creating, deleting, and managing repositories more efficiently
+- **Advanced Issue Tracking**: Features for better issue tracking, such as assigning issues, setting priorities, and adding labels
+- **Improved Pull Request Handling**: Tools for creating, reviewing, and merging pull requests with more options and automation
+- **Automated Workflows**: Integration with GitHub Actions to automate common tasks like testing, building, and deploying code
+- **Enhanced Security**: Tools for managing security vulnerabilities, such as scanning for known issues and applying patches
+- **Better Collaboration**: Features for real-time collaboration, such as live code editing and integrated chat
+- **Customizable Notifications**: Allow users to set up custom notifications for various events, such as new issues, pull requests, and commits
+- **Detailed Analytics**: Tools for generating detailed analytics and reports on repository activity, such as commit history, issue trends, and pull request metrics
 
 ## Tools
 
@@ -101,6 +108,109 @@ MCP Server for the GitHub API, enabling file operations, repository management, 
      - `branch` (string): Name for new branch
      - `from_branch` (optional string): Source branch (defaults to repo default)
    - Returns: Created branch reference
+
+10. `assign_issue`
+    - Assign an issue to one or more users
+    - Inputs:
+      - `owner` (string): Repository owner
+      - `repo` (string): Repository name
+      - `issue_number` (number): Issue number
+      - `assignees` (array): Usernames to assign
+    - Returns: Updated issue details
+
+11. `set_issue_priority`
+    - Set the priority of an issue
+    - Inputs:
+      - `owner` (string): Repository owner
+      - `repo` (string): Repository name
+      - `issue_number` (number): Issue number
+      - `priority` (string): Priority label
+    - Returns: Updated issue details
+
+12. `add_issue_label`
+    - Add a label to an issue
+    - Inputs:
+      - `owner` (string): Repository owner
+      - `repo` (string): Repository name
+      - `issue_number` (number): Issue number
+      - `label` (string): Label to add
+    - Returns: Updated issue details
+
+13. `review_pull_request`
+    - Review a pull request
+    - Inputs:
+      - `owner` (string): Repository owner
+      - `repo` (string): Repository name
+      - `pull_number` (number): Pull request number
+      - `event` (string): Review event (APPROVE, REQUEST_CHANGES, or COMMENT)
+      - `body` (optional string): Review comment
+    - Returns: Updated pull request details
+
+14. `merge_pull_request`
+    - Merge a pull request
+    - Inputs:
+      - `owner` (string): Repository owner
+      - `repo` (string): Repository name
+      - `pull_number` (number): Pull request number
+      - `commit_title` (optional string): Commit title
+      - `commit_message` (optional string): Commit message
+    - Returns: Merged pull request details
+
+15. `create_workflow`
+    - Create a new GitHub Actions workflow
+    - Inputs:
+      - `owner` (string): Repository owner
+      - `repo` (string): Repository name
+      - `workflow` (string): Workflow definition
+    - Returns: Workflow creation confirmation
+
+16. `scan_vulnerabilities`
+    - Scan for security vulnerabilities
+    - Inputs:
+      - `owner` (string): Repository owner
+      - `repo` (string): Repository name
+    - Returns: Vulnerability scan results
+
+17. `apply_patch`
+    - Apply a patch to the repository
+    - Inputs:
+      - `owner` (string): Repository owner
+      - `repo` (string): Repository name
+      - `patch` (string): Patch content
+    - Returns: Patch application confirmation
+
+18. `live_code_edit`
+    - Edit code in real-time
+    - Inputs:
+      - `owner` (string): Repository owner
+      - `repo` (string): Repository name
+      - `path` (string): Path to the file
+      - `content` (string): New content of the file
+    - Returns: Real-time code edit confirmation
+
+19. `integrated_chat`
+    - Send a message to the integrated chat
+    - Inputs:
+      - `owner` (string): Repository owner
+      - `repo` (string): Repository name
+      - `message` (string): Chat message
+    - Returns: Chat message confirmation
+
+20. `custom_notification`
+    - Send a custom notification
+    - Inputs:
+      - `owner` (string): Repository owner
+      - `repo` (string): Repository name
+      - `event` (string): Event type
+      - `message` (string): Notification message
+    - Returns: Notification confirmation
+
+21. `generate_analytics`
+    - Generate detailed analytics and reports
+    - Inputs:
+      - `owner` (string): Repository owner
+      - `repo` (string): Repository name
+    - Returns: Analytics and reports
 
 ## Setup
 
