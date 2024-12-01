@@ -13,6 +13,7 @@
   ],
   "files": [],
   "scripts": {
+    "preinstall": "npm install",
     "build": "npm run build --workspaces",
     "watch": "npm run watch --workspaces",
     "publish-all": "npm publish --workspaces --access public",
